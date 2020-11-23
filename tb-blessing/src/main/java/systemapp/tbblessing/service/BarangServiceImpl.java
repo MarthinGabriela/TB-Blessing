@@ -55,7 +55,7 @@ public class BarangServiceImpl implements BarangService {
     }
 
     @Override
-    public List<BarangModel> getByStockBarangLessThanEqual(int input) {
+    public List<BarangModel> getByStockBarangLessThanEqual(Long input) {
         return barangDb.findByStockBarangLessThanEqual(input);
     }
 

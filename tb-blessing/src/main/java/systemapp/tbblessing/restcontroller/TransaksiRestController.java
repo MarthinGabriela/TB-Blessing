@@ -20,7 +20,7 @@ public class TransaksiRestController {
     private TransaksiService transaksiService;
 
     @PostMapping(value = "/transaksi")
-    private ResponseEntity createBarang(@Valid @RequestBody TransaksiModel transaksi, BindingResult bindingResult) {
+    private ResponseEntity createTransaksi(@Valid @RequestBody TransaksiModel transaksi, BindingResult bindingResult) {
         if(bindingResult.hasFieldErrors()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Field transaksi tidak lengkap");
         } else {
@@ -46,5 +46,37 @@ public class TransaksiRestController {
         }
     }
 
-    
+    @GetMapping(value = "/transaksi/view/{idTransaksi}")
+    private TransaksiModel viewTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi) {
+        try {
+            return transaksiService.getTransaksiByIdTransaksi(idTransaksi);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Error Id Transaksi "+ String.valueOf(idTransaksi) +" tidak valid"
+            );
+        }
+    }
+
+    @GetMapping(value = "/transaksi/search/{namaPembeli}")
+    private List<TransaksiModel> viewNamaTransaksi(@PathVariable(value = "namaPembeli") String namaPembeli) {
+        try {
+            return transaksiService.getTransaksiByNamaPembeli(namaPembeli);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Tidak ada transaksi atas nama " + namaPembeli
+            );
+        }
+    }
+
+    @DeleteMapping(value = "/transaksi/{idTransaksi}")
+    private ResponseEntity<String> deleteTransaksi(@PathVariable("idTransaksi") Long idTransaksi) {
+        try {
+            transaksiService.deleteTransaksi(idTransaksi);
+            return ResponseEntity.ok("Delete Transaksi sukses");
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Error Id Transaksi "+ String.valueOf(idTransaksi) +" tidak valid"
+            );
+        }
+    }
 }

@@ -10,5 +10,5 @@ public interface BarangService {
     BarangModel getBarangByIdBarang(Long idBarang);
     BarangModel getBarangByNamaBarang(String namaBarang);
     List<BarangModel> getAllBarang();
-    List<BarangModel> getByStockBarangLessThanEqual(int input);
+    List<BarangModel> getByStockBarangLessThanEqual(Long kuantitas);
 }

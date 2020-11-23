@@ -37,7 +37,7 @@ public class BarangRestController {
     }
 
     @GetMapping(value = "/list-barang/less/{kuantitas}")
-    private List<BarangModel> viewListbarang(@PathVariable(value = "kuantitas") Integer kuantitas) {
+    private List<BarangModel> viewListbarang(@PathVariable(value = "kuantitas") Long kuantitas) {
         return barangService.getByStockBarangLessThanEqual(kuantitas);
     }
 

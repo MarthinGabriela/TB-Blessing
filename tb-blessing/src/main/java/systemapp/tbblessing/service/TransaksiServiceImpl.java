@@ -48,6 +48,11 @@ public class TransaksiServiceImpl implements TransaksiService {
     }
 
     @Override
+    public List<TransaksiModel> getTransaksiByNamaPembeli(String namaPembeli) {
+        return transaksiDb.findByNamaPembeli(namaPembeli);
+    }
+
+    @Override
     public List<TransaksiModel> getAllTransaksi() {
         return transaksiDb.findAll();
     }

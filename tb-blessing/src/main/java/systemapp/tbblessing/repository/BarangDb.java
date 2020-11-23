@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface BarangDb extends JpaRepository<BarangModel, Long>{
     Optional<BarangModel> findByIdBarang(Long idBarang);
     Optional<BarangModel> findByNamaBarang(String namaBarang);
-    List<BarangModel> findByStockBarangLessThanEqual(int input);
+    List<BarangModel> findByStockBarangLessThanEqual(Long input);
 }

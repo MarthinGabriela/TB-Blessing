@@ -8,5 +8,6 @@ public interface TransaksiService {
     TransaksiModel updateTransaksi(Long idTransaksi, TransaksiModel transaksi);
     void deleteTransaksi(Long idTransaksi);
     TransaksiModel getTransaksiByIdTransaksi(Long idTransaksi);
+    List<TransaksiModel> getTransaksiByNamaPembeli(String namaPembeli);
     List<TransaksiModel> getAllTransaksi();
 }
