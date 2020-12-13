@@ -44,6 +44,20 @@ public class BarangModel implements Serializable {
     }
 
     @NotNull
+    @Size(max = 20)
+    @Column(name = "satuan_barang", nullable = false)
+    private String satuanBarang;
+
+    public String getSatuanBarang() {
+        return this.satuanBarang;
+    }
+
+    public void setSatuanBarang(String satuanBarang) {
+        this.satuanBarang = satuanBarang;
+    }
+
+
+    @NotNull
     @Column(name = "stock_barang", nullable = false)
     private Long stockBarang;
 

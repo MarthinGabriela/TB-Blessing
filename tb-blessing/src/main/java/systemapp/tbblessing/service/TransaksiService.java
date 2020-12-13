@@ -10,4 +10,5 @@ public interface TransaksiService {
     TransaksiModel getTransaksiByIdTransaksi(Long idTransaksi);
     List<TransaksiModel> getTransaksiByNamaPembeli(String namaPembeli);
     List<TransaksiModel> getAllTransaksi();
+    void updateNominalTransaksi(TransaksiModel transaksi);
 }

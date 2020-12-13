@@ -22,11 +22,8 @@ public class BarangServiceImpl implements BarangService {
 
     @Override
     public BarangModel updateBarang(Long idBarang, BarangModel barangModel){
-        BarangModel barang = getBarangByIdBarang(idBarang);
-        barang.setHargaBeliBarang(barangModel.getHargaBeliBarang());
-        barang.setNamaBarang(barangModel.getNamaBarang());
-        barang.setStockBarang(barangModel.getStockBarang());
-        return barangDb.save(barang);
+        getBarangByIdBarang(idBarang);
+        return barangDb.save(barangModel);
     }
 
     @Override
@@ -51,7 +48,7 @@ public class BarangServiceImpl implements BarangService {
 
     @Override
     public List<BarangModel> getAllBarang() {
-        return barangDb.findAll();
+        return barangDb.findAllByOrderByNamaBarangAsc();
     }
 
     @Override
@@ -63,5 +60,10 @@ public class BarangServiceImpl implements BarangService {
     public void deleteBarang(Long idBarang) {
         BarangModel barang = getBarangByIdBarang(idBarang);
         barangDb.delete(barang);
+    }
+
+    @Override
+    public List<BarangModel> getByStockBarangGreaterThanEqual(Long input) {
+        return barangDb.findByStockBarangGreaterThanEqual(input);
     }
 }

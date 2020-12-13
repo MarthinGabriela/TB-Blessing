@@ -22,13 +22,7 @@ public class TransaksiServiceImpl implements TransaksiService {
 
     @Override
     public TransaksiModel updateTransaksi(Long idTransaksi, TransaksiModel transaksi) {
-        TransaksiModel updated = getTransaksiByIdTransaksi(idTransaksi);
-        updated.setAlamat(transaksi.getAlamat());
-        updated.setDiskon(transaksi.getDiskon());
-        updated.setHargaTotal(transaksi.getHargaTotal());
-        updated.setNamaPembeli(transaksi.getNamaPembeli());
-        updated.setTanggalTransaksi(transaksi.getTanggalTransaksi());
-        return transaksiDb.save(updated);
+        return transaksiDb.save(transaksi);
     }
 
     @Override
@@ -55,5 +49,25 @@ public class TransaksiServiceImpl implements TransaksiService {
     @Override
     public List<TransaksiModel> getAllTransaksi() {
         return transaksiDb.findAll();
+    }
+
+    @Override
+    public void updateNominalTransaksi(TransaksiModel transaksi) {
+        Long nominal = 0L;
+
+        for(int i = 0; i < transaksi.getListBarangJual().size(); i++) {
+            nominal += transaksi.getListBarangJual().get(i).getHargaJual();
+        }
+
+        Long price = (long) 100 - transaksi.getDiskon();
+        Long drnominal = (long) (nominal * price)/100;
+        nominal = drnominal;
+
+        for(int i = 0; i < transaksi.getListBarangRetur().size(); i++) {
+            nominal -= transaksi.getListBarangRetur().get(i).getHargaRetur();
+        }
+
+        transaksi.setNominalTransaksi(nominal);
+        transaksiDb.save(transaksi);
     }
 }

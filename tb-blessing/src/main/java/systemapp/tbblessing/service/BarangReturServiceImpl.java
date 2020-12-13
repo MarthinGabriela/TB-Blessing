@@ -22,8 +22,6 @@ public class BarangReturServiceImpl implements BarangReturService {
     @Override
     public BarangReturModel updateBarang(Long idBarang, BarangReturModel barang) {
         BarangReturModel barangRetur = getBarangByIdBarang(idBarang);
-        barangRetur.setHargaRetur(barang.getHargaRetur());
-        barangRetur.setStockBarangRetur(barang.getStockBarangRetur());
         return barangReturDb.save(barangRetur);
     }
 

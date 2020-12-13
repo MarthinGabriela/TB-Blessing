@@ -26,19 +26,6 @@ public class BarangJualModel implements Serializable {
     }
 
     @NotNull
-    @Size(max = 50)
-    @Column(name = "nama_barang_jual", nullable = false)
-    private String namaBarangJual;
-
-    public String getNamaBarangJual() {
-        return this.namaBarangJual;
-    }
-
-    public void setNamaBarangJual(String namaBarangJual) {
-        this.namaBarangJual = namaBarangJual;
-    }
-
-    @NotNull
     @Column(name = "stock_barang_jual", nullable = false)
     private Long stockBarangJual;
 
@@ -63,7 +50,7 @@ public class BarangJualModel implements Serializable {
     }
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "barangJual_id", referencedColumnName = "id_barang", nullable = false)
+    @JoinColumn(name = "barangjual_id", referencedColumnName = "id_barang", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private BarangModel barangModel;
 

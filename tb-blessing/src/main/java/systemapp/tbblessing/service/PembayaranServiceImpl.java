@@ -23,8 +23,6 @@ public class PembayaranServiceImpl implements PembayaranService {
     @Override
     public PembayaranModel updatePembayaran(Long idPembayaran, PembayaranModel pembayaran) {
         PembayaranModel updated = getPembayaranByIdPembayaran(idPembayaran);
-        updated.setTanggalPembayaran(pembayaran.getTanggalPembayaran());
-        updated.setPembayaran(pembayaran.getPembayaran());
         return pembayaranDb.save(updated);
     }
 

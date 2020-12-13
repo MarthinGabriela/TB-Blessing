@@ -22,8 +22,6 @@ public class BarangJualServiceImpl implements BarangJualService {
     @Override
     public BarangJualModel updateBarang(Long idBarangJual, BarangJualModel barangJualModel) {
         BarangJualModel barangJual = getBarangByIdBarang(idBarangJual);
-        barangJual.setHargaJual(barangJualModel.getHargaJual());
-        barangJual.setStockBarangJual(barangJualModel.getStockBarangJual());
         return barangJualDb.save(barangJual);
     }
 

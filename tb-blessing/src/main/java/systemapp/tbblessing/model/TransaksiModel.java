@@ -50,19 +50,6 @@ public class TransaksiModel implements Serializable {
         this.alamat = alamat;
     }
 
-
-    @NotNull
-    @Column(name = "harga_total", nullable = false)
-    private Long hargaTotal;
-
-    public Long getHargaTotal() {
-        return this.hargaTotal;
-    }
-
-    public void setHargaTotal(Long hargaTotal) {
-        this.hargaTotal = hargaTotal;
-    }
-
     @NotNull
     @Column(name = "diskon", nullable = false)
     private int diskon;
@@ -132,6 +119,30 @@ public class TransaksiModel implements Serializable {
 
     public void addListPembayaran(PembayaranModel pembayaranModel) {
         this.listPembayaran.add(pembayaranModel);
+    }
+
+    @NotNull
+    @Column(name = "nominal_transaksi", nullable = false)
+    private Long nominalTransaksi;
+
+    public Long getNominalTransaksi() {
+        return this.nominalTransaksi;
+    }
+
+    public void setNominalTransaksi(Long nominalTransaksi) {
+        this.nominalTransaksi = nominalTransaksi;
+    }
+
+    @NotNull
+    @Column(name = "hutang_transaksi", nullable = false)
+    private Long hutangTransaksi;
+
+    public Long getHutangTransaksi() {
+        return this.hutangTransaksi;
+    }
+
+    public void setHutangTransaksi(Long hutangTransaksi) {
+        this.hutangTransaksi = hutangTransaksi;
     }
 
 }
