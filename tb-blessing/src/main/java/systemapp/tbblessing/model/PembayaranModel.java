@@ -2,6 +2,8 @@ package systemapp.tbblessing.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.hibernate.annotations.OnDelete;
@@ -55,6 +57,7 @@ public class PembayaranModel implements Serializable {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "transaksi_id", referencedColumnName = "id_transaksi", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
     private TransaksiModel transaksiModel;
 
     public TransaksiModel getTransaksiModel() {

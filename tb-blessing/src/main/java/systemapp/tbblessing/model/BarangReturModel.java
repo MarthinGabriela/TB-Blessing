@@ -3,6 +3,8 @@ package systemapp.tbblessing.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import org.hibernate.annotations.OnDelete;
@@ -23,19 +25,6 @@ public class BarangReturModel implements Serializable {
 
     public void setIdBarangRetur(Long idBarangRetur) {
         this.idBarangRetur = idBarangRetur;
-    }
-
-    @NotNull
-    @Size(max = 50)
-    @Column(name = "nama_barang_retur", nullable = false)
-    private String namaBarangRetur;
-
-    public String getNamaBarangRetur() {
-        return this.namaBarangRetur;
-    }
-
-    public void setNamaBarangRetur(String namaBarangRetur) {
-        this.namaBarangRetur = namaBarangRetur;
     }
 
     @NotNull
@@ -78,6 +67,7 @@ public class BarangReturModel implements Serializable {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "transaksi_id", referencedColumnName = "id_transaksi", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
     private TransaksiModel transaksiModel;
 
     public TransaksiModel getTransaksiModel() {

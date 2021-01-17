@@ -12,6 +12,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.*;
 
 @Entity
@@ -82,6 +86,7 @@ public class BarangModel implements Serializable {
     }
 
     @OneToMany(mappedBy = "barangModel", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<BarangJualModel> listBarangJual;
 
     public List<BarangJualModel> getListBarangJual() {
@@ -97,6 +102,7 @@ public class BarangModel implements Serializable {
     }
 
     @OneToMany(mappedBy = "barangModel", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<BarangReturModel> listBarangRetur;
 
     public List<BarangReturModel> getListBarangRetur() {

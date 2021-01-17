@@ -16,8 +16,8 @@ public class TransaksiServiceImpl implements TransaksiService {
     TransaksiDb transaksiDb;
 
     @Override
-    public void addTransaksi(TransaksiModel transaksi) {
-        transaksiDb.save(transaksi);
+    public TransaksiModel addTransaksi(TransaksiModel transaksi) {
+        return transaksiDb.save(transaksi);
     }
 
     @Override
@@ -52,22 +52,44 @@ public class TransaksiServiceImpl implements TransaksiService {
     }
 
     @Override
-    public void updateNominalTransaksi(TransaksiModel transaksi) {
+    public TransaksiModel updateNominalTransaksi(TransaksiModel input) {
         Long nominal = 0L;
+        TransaksiModel transaksi = getTransaksiByIdTransaksi(input.getIdTransaksi());
 
-        for(int i = 0; i < transaksi.getListBarangJual().size(); i++) {
-            nominal += transaksi.getListBarangJual().get(i).getHargaJual();
+        try {
+            for(int i = 0; i < transaksi.getListBarangJual().size(); i++) {
+                nominal += transaksi.getListBarangJual().get(i).getHargaJual();
+            }
+        } catch (NullPointerException e) {
+
         }
 
         Long price = (long) 100 - transaksi.getDiskon();
         Long drnominal = (long) (nominal * price)/100;
         nominal = drnominal;
 
-        for(int i = 0; i < transaksi.getListBarangRetur().size(); i++) {
-            nominal -= transaksi.getListBarangRetur().get(i).getHargaRetur();
+        try {
+            for(int i = 0; i < transaksi.getListBarangRetur().size(); i++) {
+                nominal -= transaksi.getListBarangRetur().get(i).getHargaRetur();
+            }
+        } catch (NullPointerException e) {
+            
         }
 
         transaksi.setNominalTransaksi(nominal);
-        transaksiDb.save(transaksi);
+        return transaksiDb.save(transaksi);
+    }
+
+    @Override
+    public TransaksiModel updateHutangTransaksi(TransaksiModel transaksi) {
+        Long nominal = transaksi.getNominalTransaksi();
+        Long pembayaran = 0L;
+
+        for(int i = 0; i < transaksi.getListPembayaran().size(); i++) {
+            pembayaran += transaksi.getListPembayaran().get(i).getPembayaran();
+        }
+
+        transaksi.setHutangTransaksi(nominal - pembayaran);
+        return transaksiDb.save(transaksi);
     }
 }
