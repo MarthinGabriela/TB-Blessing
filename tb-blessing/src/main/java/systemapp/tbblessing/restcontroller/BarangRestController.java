@@ -1,7 +1,6 @@
 package systemapp.tbblessing.restcontroller;
 
 import systemapp.tbblessing.model.*;
-import systemapp.tbblessing.object.BaseInput;
 import systemapp.tbblessing.object.BaseResponse;
 import systemapp.tbblessing.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,19 +19,15 @@ public class BarangRestController {
     @Autowired
     private BarangService barangService;
 
-    @Autowired
-    private LoginService loginService;
-
     @PostMapping(value = "/barang")
-    private BaseResponse createBarang(@Valid @RequestBody BaseInput input) {
-        try {
-            loginService.getLoginByToken(input.getToken()).get();
-        } catch (NoSuchElementException e) {
-            return new BaseResponse(401, "Input Token is not available in the Database");
-        }
-
-        BarangModel barang = (BarangModel) input.getInput();
+    private BaseResponse createBarang(@Valid @RequestBody BarangModel input, BindingResult result) {
         
+        if(result.hasFieldErrors()) {
+            return new BaseResponse(500, "Field Barang Error", null);
+        }
+        barangService.addBarang(input);
+        BaseResponse response = new BaseResponse(200, "Barang telah ditambahkan ke database", input);
+        return response;
     }
 
     @GetMapping(value = "/list-barang")

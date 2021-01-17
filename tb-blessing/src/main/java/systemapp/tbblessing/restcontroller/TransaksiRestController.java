@@ -117,10 +117,17 @@ public class TransaksiRestController {
     }
 
     @GetMapping(value = "/transaksi/update/{idTransaksi}")
-    private BaseResponse updateTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi, @RequestBody TransaksiModel input) {
+    private BaseResponse updateTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi, @RequestBody TransaksiInput input) {
         try {
-            
-            TransaksiModel transaksi = transaksiService.updateTransaksi(idTransaksi, input);
+            TransaksiModel transaksiUpdate = new TransaksiModel();
+            transaksiUpdate.setNamaPembeli(input.getNamaPembeli());
+            transaksiUpdate.setAlamat(input.getAlamat());
+            transaksiUpdate.setDiskon(input.getDiskon());
+
+            List<PembayaranModel> listPembayaran = transaksiService.getTransaksiByIdTransaksi(idTransaksi).getListPembayaran();
+            transaksiUpdate.setListPembayaran(listPembayaran);
+
+            TransaksiModel transaksi = transaksiService.updateTransaksi(idTransaksi, transaksiUpdate);
 
             BarangModel barang = new BarangModel();
             BarangJualModel barangJ = new BarangJualModel();
@@ -163,14 +170,6 @@ public class TransaksiRestController {
                 barang.setStockBarang(barang.getStockBarang() + barangR.getStockBarangRetur());
                 barangService.updateBarang(barang.getIdBarang(), barang);
             }
-
-            PembayaranModel firstPayment = new PembayaranModel();
-
-            firstPayment.setPembayaran(input.getDP());
-            firstPayment.setTanggalPembayaran(new Date());
-            firstPayment.setTransaksiModel(transaksi);
-            pembayaranService.addPembayaran(firstPayment);
-            transaksi.addListPembayaran(firstPayment);
 
             TransaksiModel updatedTransaksi = transaksiService.updateNominalTransaksi(transaksi);
             updatedTransaksi = transaksiService.updateHutangTransaksi(transaksi);
