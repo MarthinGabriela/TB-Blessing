@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,6 +143,15 @@ public class TransaksiRestController {
             return response;
         }
     }
+
+    /*
+    @GetMapping(value = "list-transaksi/date")
+    private BaseResponse viewListTransaksiByDate(@RequestParam(name = "start") String start, @RequestParam(name = "end") String end) {
+        Date starting = new SimpleDateFormat("dd-MMM-yyyy").parse(start);
+        Date ending = new SimpleDateFormat("dd-MM-yyyy").parse(end);
+
+        List<TransaksiModel> list = transaksiService.get
+    } */
 
     @GetMapping(value = "/transaksi/update/{idTransaksi}")
     private BaseResponse updateTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi, @RequestBody TransaksiInput input) {
