@@ -1,6 +1,7 @@
 package systemapp.tbblessing.restcontroller;
 
 import systemapp.tbblessing.model.*;
+import systemapp.tbblessing.object.*;
 import systemapp.tbblessing.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,53 +20,60 @@ public class PembayaranRestController {
     @Autowired
     private PembayaranService pembayaranService;
 
+    @Autowired
+    private TransaksiService transaksiService;
+
     @PostMapping(value = "/pembayaran")
-    private ResponseEntity createPembayaran(@Valid @RequestBody PembayaranModel pembayaran, BindingResult bindingResult) {
+    private BaseResponse createPembayaran(@Valid @RequestBody PembayaranInput pembayaran, BindingResult bindingResult) {
         if(bindingResult.hasFieldErrors()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Field pembayaran tidak lengkap");
+            return new BaseResponse(500, "Input Field for Pembayaran is missing", null);
         } else {
-            pembayaranService.addPembayaran(pembayaran);
-            return ResponseEntity.ok("Add Pembayaran sukses");
+            PembayaranModel bayar = new PembayaranModel();
+            bayar.setPembayaran(pembayaran.getNominal());
+            bayar.setTanggalPembayaran(pembayaran.getTanggal());
+            bayar.setTransaksiModel(transaksiService.getTransaksiByIdTransaksi(pembayaran.getIdTransaksi()));
+
+            pembayaranService.addPembayaran(bayar);
+            transaksiService.updateHutangTransaksi(bayar.getTransaksiModel());
+            return new BaseResponse(200, "Pembayaran berhasil ditambahkan ke dalam database", bayar);
         }
     }
 
     @GetMapping(value = "/list-pembayaran")
-    private List<PembayaranModel> viewListPembayaran() {
-        return pembayaranService.getAllPembayaran();
+    private BaseResponse viewListPembayaran() {
+        return new BaseResponse(200, "List Pembayaran Get", pembayaranService.getAllPembayaran());
     }
 
     @GetMapping(value = "/pembayaran/update/{idPembayaran}")
-    private ResponseEntity updatePembayaran(@PathVariable(value = "idPembayaran") Long idPembayaran, @RequestBody PembayaranModel pembayaran) {
+    private BaseResponse updatePembayaran(@PathVariable(value = "idPembayaran") Long idPembayaran, @RequestBody PembayaranModel pembayaran) {
         try {
             pembayaranService.updatePembayaran(idPembayaran, pembayaran);
-            return ResponseEntity.ok("Update Pembayaran sukses");
+            transaksiService.updateHutangTransaksi(pembayaran.getTransaksiModel());
+            return new BaseResponse(200, "Pembayaran berhasil diedit", pembayaran);
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Pembayaran "+ String.valueOf(idPembayaran) +" tidak valid"
-            );
+            return new BaseResponse(404, "Id Pembayaran tidak tersedia", null);
         }
     }
 
     @GetMapping(value = "/pembayaran/view/{idPembayaran}")
-    private PembayaranModel viewPembayaran(@PathVariable(value = "idPembayaran") Long idPembayaran) {
+    private BaseResponse viewPembayaran(@PathVariable(value = "idPembayaran") Long idPembayaran) {
         try {
-            return pembayaranService.getPembayaranByIdPembayaran(idPembayaran);
+            pembayaranService.getPembayaranByIdPembayaran(idPembayaran);
+            return new BaseResponse(200, "Pembayaran berhasil diedit", pembayaranService.getPembayaranByIdPembayaran(idPembayaran));
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Pembayaran "+ String.valueOf(idPembayaran) +" tidak valid"
-            );
+            return new BaseResponse(404, "Id Pembayaran tidak tersedia", null);
         }
     }
 
     @DeleteMapping(value = "/pembayaran/{idPembayaran}")
-    private ResponseEntity<String> deletePembayaran(@PathVariable("idPembayaran") Long idPembayaran) {
+    private BaseResponse deletePembayaran(@PathVariable("idPembayaran") Long idPembayaran) {
         try {
+            TransaksiModel transaksi = pembayaranService.getPembayaranByIdPembayaran(idPembayaran).getTransaksiModel();
             pembayaranService.deletePembayaran(idPembayaran);
-            return ResponseEntity.ok("Delete Pembayaran sukses");
+            transaksiService.updateHutangTransaksi(transaksi);
+            return new BaseResponse(200, "Pembayaran berhasil dihapus", null);
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Pembayaran "+ String.valueOf(idPembayaran) +" tidak valid"
-            );
+            return new BaseResponse(200, "Id Pembayaran tidak tersedia", null);
         }
     }
 }

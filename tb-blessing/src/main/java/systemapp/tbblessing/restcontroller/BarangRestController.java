@@ -63,9 +63,7 @@ public class BarangRestController {
 
             return response;
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Barang "+ String.valueOf(idBarang) +" tidak valid"
-            );
+            return new BaseResponse(404, "ID Barang Tidak tersedia", null);
         }
     }
 
@@ -80,33 +78,27 @@ public class BarangRestController {
 
             return response;
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Barang "+ String.valueOf(idBarang) +" tidak valid"
-            );
+            return new BaseResponse(404, "ID Barang tidak tersedia", null);
         }
     }
 
     @GetMapping(value = "/barang/search/{nama}")
-    private BarangModel viewNamaBarang(@PathVariable(value = "nama") String nama) {
+    private BaseResponse viewNamaBarang(@PathVariable(value = "nama") String nama) {
         try {
-            return barangService.getBarangByNamaBarang(nama);
+            return new BaseResponse(200, "Barang tersedia", barangService.getBarangByNamaBarang(nama));
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Barang " + nama +" tidak valid"
-            );
+            return new BaseResponse(404, "Barang tidak tersedia", null);
         }
     }
 
     // Jika perlu Hapus barang, kemungkinan sih enggak kepake tapi jaga-jaga aja
     @DeleteMapping(value = "/barang/{idBarang}")
-    private ResponseEntity<String> deleteBarang(@PathVariable("idBarang") Long idBarang) {
+    private BaseResponse deleteBarang(@PathVariable("idBarang") Long idBarang) {
         try {
             barangService.deleteBarang(idBarang);
-            return ResponseEntity.ok("Delete Barang sukses");
+            return new BaseResponse(200, "Delete Barang sukses", idBarang);
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Barang "+ String.valueOf(idBarang) +" tidak valid"
-            );
+            return new BaseResponse(404, "ID Barang tidak tersedia", null);
         }
     }
 }

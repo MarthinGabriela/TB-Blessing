@@ -3,8 +3,13 @@ package systemapp.tbblessing.service;
 import systemapp.tbblessing.model.*;
 import systemapp.tbblessing.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -91,5 +96,22 @@ public class TransaksiServiceImpl implements TransaksiService {
 
         transaksi.setHutangTransaksi(nominal - pembayaran);
         return transaksiDb.save(transaksi);
+    }
+
+    @Override
+    public List<TransaksiModel> getAllTransaksiPage(Long page) {
+        return transaksiDb.findTop10ByOrderByIdTransaksiDesc();
+    }
+
+    @Override
+    public List<TransaksiModel> getTransaksiByPage(Long input) {
+        return transaksiDb.findByIdTransaksiBetween(input - 9, input);
+    }
+
+    @Override
+    public TransaksiModel getLatest(){
+        List<TransaksiModel> list = transaksiDb.findTop1ByOrderByIdTransaksiDesc();
+
+        return list.get(0);
     }
 }

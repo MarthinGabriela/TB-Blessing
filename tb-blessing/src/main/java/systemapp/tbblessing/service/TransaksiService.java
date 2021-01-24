@@ -12,4 +12,7 @@ public interface TransaksiService {
     List<TransaksiModel> getAllTransaksi();
     TransaksiModel updateNominalTransaksi(TransaksiModel transaksi);
     TransaksiModel updateHutangTransaksi(TransaksiModel transaksi);
+    List<TransaksiModel> getAllTransaksiPage(Long page);
+    List<TransaksiModel> getTransaksiByPage(Long input);
+    TransaksiModel getLatest();
 }

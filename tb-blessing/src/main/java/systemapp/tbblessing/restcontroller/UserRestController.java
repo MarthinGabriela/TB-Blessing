@@ -1,6 +1,7 @@
 package systemapp.tbblessing.restcontroller;
 
 import systemapp.tbblessing.model.*;
+import systemapp.tbblessing.object.BaseResponse;
 import systemapp.tbblessing.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,17 +19,15 @@ public class UserRestController {
     @Autowired
     private LoginService service;
     
-    @GetMapping("/login")
-    private LoginModel handleLogin(
+    @PostMapping("/login")
+    private BaseResponse handleLogin(
         @Valid @RequestBody LoginModel login
     ) {
         try {
             LoginModel log = service.getLoginByToken(login.getToken()).get();
-            return log;
+            return new BaseResponse(200, "Token tersedia", log);
         } catch(NoSuchElementException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "No Token Found!"
-            );
+            return new BaseResponse(404, "Token tidak tersedia di dalam Database", null);
         }
     }
 }

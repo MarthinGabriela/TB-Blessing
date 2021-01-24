@@ -3,6 +3,10 @@ package systemapp.tbblessing.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import java.io.Serializable;
 import java.util.Date;
@@ -66,6 +70,7 @@ public class TransaksiModel implements Serializable {
     @Temporal(TemporalType.DATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "tanggal_transaksi")
+    @JsonFormat(pattern="yyyy-MM-dd")
     private Date tanggalTransaksi;
 
     public Date getTanggalTransaksi() {

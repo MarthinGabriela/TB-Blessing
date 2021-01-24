@@ -3,6 +3,7 @@ package systemapp.tbblessing.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -44,6 +45,7 @@ public class PembayaranModel implements Serializable {
     @Temporal(TemporalType.DATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "tanggal_pembayaran")
+    @JsonFormat(pattern="yyyy-MM-dd")
     private Date tanggalPembayaran;
 
     public Date getTanggalPembayaran() {

@@ -7,6 +7,8 @@ import systemapp.tbblessing.object.BaseResponse;
 import systemapp.tbblessing.object.TransaksiInput;
 import systemapp.tbblessing.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -86,13 +88,15 @@ public class TransaksiRestController {
             barangService.updateBarang(barang.getIdBarang(), barang);
         }
 
-        PembayaranModel firstPayment = new PembayaranModel();
+        if(input.getDP() != 0) {
+            PembayaranModel firstPayment = new PembayaranModel();
 
-        firstPayment.setPembayaran(input.getDP());
-        firstPayment.setTanggalPembayaran(new Date());
-        firstPayment.setTransaksiModel(transaksi);
-        pembayaranService.addPembayaran(firstPayment);
-        transaksi.addListPembayaran(firstPayment);
+            firstPayment.setPembayaran(input.getDP());
+            firstPayment.setTanggalPembayaran(new Date());
+            firstPayment.setTransaksiModel(transaksi);
+            pembayaranService.addPembayaran(firstPayment);
+            transaksi.addListPembayaran(firstPayment);
+        }
 
         TransaksiModel updatedTransaksi = transaksiService.updateNominalTransaksi(transaksi);
         updatedTransaksi = transaksiService.updateHutangTransaksi(transaksi);
@@ -105,15 +109,38 @@ public class TransaksiRestController {
         return response;
     }
 
-    @GetMapping(value = "/list-transaksi")
-    private BaseResponse viewListTransaksi() {
-        List<TransaksiModel> list = transaksiService.getAllTransaksi();
-        BaseResponse response = new BaseResponse();
-        response.setStatus(200);
-        response.setMessage("List Transaksi");
-        response.setResult(list);
+    @GetMapping(value = "/list-transaksi/{page}")
+    private BaseResponse viewListTransaksi(@PathVariable Long page) {
+        long id = transaksiService.getLatest().getIdTransaksi();
+        long paging = 10*(page-1);
+        if(!(paging == 0L)) {
+            id = id - paging;
+        }
 
-        return response;
+        if(id <= 0 && page > 1) {
+            List<TransaksiModel> list = transaksiService.getAllTransaksi();
+
+            BaseResponse response = new BaseResponse();
+            response.setStatus(200);
+            response.setMessage("Last Transaksi");
+            response.setResult(list);
+
+            return response;
+        } else {
+            List<TransaksiModel> list = transaksiService.getTransaksiByPage(id);
+
+            BaseResponse response = new BaseResponse();
+            response.setStatus(200);
+            if(list.get(0).getIdTransaksi().equals(1L)) {
+                response.setMessage("Last Page");
+            } else {
+                response.setMessage("Next Page");
+            }
+            Collections.reverse(list);
+            response.setResult(list);
+
+            return response;
+        }
     }
 
     @GetMapping(value = "/transaksi/update/{idTransaksi}")
@@ -181,9 +208,7 @@ public class TransaksiRestController {
 
             return response;
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Transaksi "+ String.valueOf(idTransaksi) + " tidak valid"
-            );
+            return new BaseResponse(404, "Id Transaksi tidak tersedia", null);
         }
     }
 
@@ -196,9 +221,7 @@ public class TransaksiRestController {
             response.setResult(transaksiService.getTransaksiByIdTransaksi(idTransaksi));
             return response;
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Transaksi "+ String.valueOf(idTransaksi) +" tidak valid"
-            );
+            return new BaseResponse(404, "Id Transaksi tidak tersedia", null);
         }
     }
 
@@ -207,25 +230,48 @@ public class TransaksiRestController {
         try {
             BaseResponse response = new BaseResponse();
             response.setStatus(200);
-            response.setMessage("Update Transaksi Sukses");
+            response.setMessage("Transaksi tersedia");
             response.setResult(transaksiService.getTransaksiByNamaPembeli(namaPembeli));
             return response;
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Tidak ada transaksi atas nama " + namaPembeli
-            );
+            return new BaseResponse(404, "Transaksi tidak tersedia", null);
         }
     }
 
     @DeleteMapping(value = "/transaksi/{idTransaksi}")
-    private ResponseEntity<String> deleteTransaksi(@PathVariable("idTransaksi") Long idTransaksi) {
+    private BaseResponse deleteTransaksi(@PathVariable("idTransaksi") Long idTransaksi) {
         try {
+            BarangModel barang = new BarangModel();
+            TransaksiModel transaksi = transaksiService.getTransaksiByIdTransaksi(idTransaksi);
+
+            for(BarangJualModel barangJual : transaksi.getListBarangJual()) {
+
+                try {
+                    barang = barangJual.getBarangModel();
+                } catch(NoSuchElementException e) {
+                    continue;
+                }
+            
+                barang.setStockBarang(barang.getStockBarang() + barangJual.getStockBarangJual());
+                barangService.updateBarang(barang.getIdBarang(), barang);
+            }
+    
+            for(BarangReturModel barangRetur : transaksi.getListBarangRetur()) {
+    
+                try {
+                    barang = barangRetur.getBarangModel();
+                } catch(NoSuchElementException e) {
+                    continue;
+                }
+    
+                barang.setStockBarang(barang.getStockBarang() - barangRetur.getStockBarangRetur());
+                barangService.updateBarang(barang.getIdBarang(), barang);
+            }
+
             transaksiService.deleteTransaksi(idTransaksi);
-            return ResponseEntity.ok("Delete Transaksi sukses");
+            return new BaseResponse(200, "Barang berhasil dihapus", null);
         } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Error Id Transaksi "+ String.valueOf(idTransaksi) +" tidak valid"
-            );
+            return new BaseResponse(404, "Id Transaksi tidak tersedia", null);
         }
     }
 
