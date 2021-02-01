@@ -16,5 +16,5 @@ public interface TransaksiDb extends JpaRepository<TransaksiModel, Long>{
       Date end);
     List<TransaksiModel> findTop10ByOrderByIdTransaksiDesc();
 	List<TransaksiModel> findByIdTransaksiBetween(Long input, long l);
-	List<TransaksiModel> findTop1ByOrderByIdTransaksiDesc();
+    List<TransaksiModel> findTop1ByOrderByIdTransaksiDesc();
 }

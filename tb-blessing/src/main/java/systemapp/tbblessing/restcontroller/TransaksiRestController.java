@@ -5,18 +5,13 @@ import systemapp.tbblessing.object.BarangJualInput;
 import systemapp.tbblessing.object.BarangReturInput;
 import systemapp.tbblessing.object.BaseResponse;
 import systemapp.tbblessing.object.TransaksiInput;
+import systemapp.tbblessing.object.UpdateTransaksiInput;
 import systemapp.tbblessing.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -110,110 +105,136 @@ public class TransaksiRestController {
         return response;
     }
 
-    @GetMapping(value = "/list-transaksi/{page}")
-    private BaseResponse viewListTransaksi(@PathVariable Long page) {
-        long id = transaksiService.getLatest().getIdTransaksi();
-        long paging = 10*(page-1);
-        if(!(paging == 0L)) {
-            id = id - paging;
-        }
+    @GetMapping(value = "/list-transaksi")
+    private BaseResponse viewListTransaksi(
+        @RequestParam(name="page") Long page,
+        @RequestParam(name="start", required = false) String start,
+        @RequestParam(name="end", required = false) String end) {
+            if(start == null && end == null) {
+                long id = transaksiService.getLatest().getIdTransaksi();
+                long paging = 10*(page-1);
+                if(!(paging == 0L)) {
+                    id = id - paging;
+                }
 
-        if(id <= 0 && page > 1) {
-            List<TransaksiModel> list = transaksiService.getAllTransaksi();
+                if(id <= 0 && page > 1) {
+                    List<TransaksiModel> list = transaksiService.getAllTransaksi();
 
-            BaseResponse response = new BaseResponse();
-            response.setStatus(200);
-            response.setMessage("Last Transaksi");
-            response.setResult(list);
+                    BaseResponse response = new BaseResponse();
+                    response.setStatus(200);
+                    response.setMessage("Last Transaksi");
+                    response.setResult(list);
 
-            return response;
-        } else {
-            List<TransaksiModel> list = transaksiService.getTransaksiByPage(id);
+                    return response;
+                } else {
+                    List<TransaksiModel> list = transaksiService.getTransaksiByPage(id);
 
-            BaseResponse response = new BaseResponse();
-            response.setStatus(200);
-            if(list.get(0).getIdTransaksi().equals(1L)) {
-                response.setMessage("Last Page");
+                    BaseResponse response = new BaseResponse();
+                    response.setStatus(200);
+                    if(list.get(0).getIdTransaksi().equals(1L)) {
+                        response.setMessage("Last Page");
+                    } else {
+                        response.setMessage("Next Page");
+                    }
+                    Collections.reverse(list);
+                    response.setResult(list);
+
+                    return response;
+                }
             } else {
-                response.setMessage("Next Page");
-            }
-            Collections.reverse(list);
-            response.setResult(list);
+                List<TransaksiModel> list = transaksiService.getTransaksiByDate(start, end, page);
 
-            return response;
-        }
+                BaseResponse response = new BaseResponse();
+                response.setStatus(200);
+                if(list.get(0).getIdTransaksi().equals(1L)) {
+                    response.setMessage("Last Page");
+                } else {
+                    response.setMessage("Next Page");
+                }
+                Collections.reverse(list);
+                response.setResult(list);
+
+                return response;
+                }
     }
 
-    /*
     @GetMapping(value = "list-transaksi/date")
     private BaseResponse viewListTransaksiByDate(@RequestParam(name = "start") String start, @RequestParam(name = "end") String end) {
-        Date starting = new SimpleDateFormat("dd-MMM-yyyy").parse(start);
-        Date ending = new SimpleDateFormat("dd-MM-yyyy").parse(end);
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd z");
+        ZonedDateTime starting = ZonedDateTime.parse(start +" Asia/Jakarta", format);
+        ZonedDateTime ending = ZonedDateTime.parse(end + " Asia/Jakarta", format);
 
-        List<TransaksiModel> list = transaksiService.get
-    } */
+        // List<TransaksiModel> list = transaksiService.getTransaksiByDate(starting, ending);
+        // BaseResponse response = new BaseResponse(200, "List Transaksi bertanggal", list);
+        // return response;
+        return null;
+    }
 
-    @GetMapping(value = "/transaksi/update/{idTransaksi}")
-    private BaseResponse updateTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi, @RequestBody TransaksiInput input) {
+    @PutMapping(value = "/transaksi/update/{idTransaksi}")
+    private BaseResponse updateTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi, @RequestBody UpdateTransaksiInput transaksi) {
         try {
-            TransaksiModel transaksiUpdate = new TransaksiModel();
-            transaksiUpdate.setNamaPembeli(input.getNamaPembeli());
-            transaksiUpdate.setAlamat(input.getAlamat());
-            transaksiUpdate.setDiskon(input.getDiskon());
-
-            List<PembayaranModel> listPembayaran = transaksiService.getTransaksiByIdTransaksi(idTransaksi).getListPembayaran();
-            transaksiUpdate.setListPembayaran(listPembayaran);
-
-            TransaksiModel transaksi = transaksiService.updateTransaksi(idTransaksi, transaksiUpdate);
-
+            TransaksiModel trans = new TransaksiModel();
+            trans.setAlamat(transaksi.getAlamat());
+            trans.setDiskon(transaksi.getDiskon());
+            trans.setIdTransaksi(transaksi.getIdTransaksi());
+            trans.setNamaPembeli(transaksi.getNamaPembeli());
+            trans.setHutangTransaksi(0L);
+            trans.setNominalTransaksi(0L);
+            trans.setListBarangJual(new ArrayList<BarangJualModel>());
+            trans.setListBarangRetur(new ArrayList<BarangReturModel>());
+            trans.setListPembayaran(new ArrayList<PembayaranModel>());
+            trans.setTanggalTransaksi(transaksiService.getTransaksiByIdTransaksi(idTransaksi).getTanggalTransaksi());
             BarangModel barang = new BarangModel();
             BarangJualModel barangJ = new BarangJualModel();
-            BarangReturModel barangR = new BarangReturModel();
-
-            for(BarangJualInput barangJual : input.getListBarangJual()) {
+            BarangReturModel barangR =  new BarangReturModel();
+            
+            for(BarangJualInput barangJual : transaksi.getListBarangJual()) {
 
                 try {
                     barang = barangService.getBarangByNamaBarang(barangJual.getNamaBarang());
                 } catch(NoSuchElementException e) {
                     continue;
                 }
-
+    
                     barangJ.setHargaJual(barangJual.getHarga());
                     barangJ.setStockBarangJual(barangJual.getStock());
                     barangJ.setBarangModel(barangService.getBarangByNamaBarang(barangJual.getNamaBarang()));
-                    barangJ.setTransaksiModel(transaksi);
+                    barangJ.setTransaksiModel(trans);
                     barangJService.addBarang(barangJ);
-                    transaksi.addListBarangJual(barangJ);
-
+                    trans.addListBarangJual(barangJ);
+    
                     barang.setStockBarang(barang.getStockBarang() - barangJ.getStockBarangJual());
                     barangService.updateBarang(barang.getIdBarang(), barang);
+    
             }
-
-            for(BarangReturInput barangRetur : input.getListBarangRetur()) {
-
+    
+            for(BarangReturInput barangRetur : transaksi.getListBarangRetur()) {
+    
                 try {
                     barang = barangService.getBarangByNamaBarang(barangRetur.getNamaBarang());
                 } catch(NoSuchElementException e) {
                     continue;
                 }
-
+    
                 barangR.setHargaRetur(barangRetur.getHarga());
                 barangR.setStockBarangRetur(barangRetur.getStock());
                 barangR.setBarangModel(barangService.getBarangByNamaBarang(barangRetur.getNamaBarang()));
-                barangR.setTransaksiModel(transaksi);
+                barangR.setTransaksiModel(trans);
                 barangRService.addBarang(barangR);
-                transaksi.addListBarangRetur(barangR);
-
+                trans.addListBarangRetur(barangR);
+    
                 barang.setStockBarang(barang.getStockBarang() + barangR.getStockBarangRetur());
                 barangService.updateBarang(barang.getIdBarang(), barang);
             }
 
-            TransaksiModel updatedTransaksi = transaksiService.updateNominalTransaksi(transaksi);
-            updatedTransaksi = transaksiService.updateHutangTransaksi(transaksi);
+            transaksiService.updateTransaksi(idTransaksi, trans);
+            transaksiService.updateHutangTransaksi(trans);
+            transaksiService.updateNominalTransaksi(trans);
+            TransaksiModel updatedTransaksi = transaksiService.getTransaksiByIdTransaksi(idTransaksi);
             
             BaseResponse response = new BaseResponse();
             response.setStatus(200);
-            response.setMessage("Add Transaksi Sukses");
+            response.setMessage("Update Transaksi Sukses");
             response.setResult(updatedTransaksi);
 
             return response;
@@ -227,7 +248,7 @@ public class TransaksiRestController {
         try {
             BaseResponse response = new BaseResponse();
             response.setStatus(200);
-            response.setMessage("Update Transaksi Sukses");
+            response.setMessage("Transaksi Tersedia");
             response.setResult(transaksiService.getTransaksiByIdTransaksi(idTransaksi));
             return response;
         } catch (NoSuchElementException e) {

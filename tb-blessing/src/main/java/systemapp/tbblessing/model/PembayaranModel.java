@@ -45,7 +45,6 @@ public class PembayaranModel implements Serializable {
     @Temporal(TemporalType.DATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "tanggal_pembayaran")
-    @JsonFormat(pattern="yyyy-MM-dd")
     private Date tanggalPembayaran;
 
     public Date getTanggalPembayaran() {

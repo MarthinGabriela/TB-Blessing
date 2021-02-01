@@ -1,6 +1,7 @@
 package systemapp.tbblessing.service;
 
 import systemapp.tbblessing.model.*;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface TransaksiService {
@@ -15,4 +16,5 @@ public interface TransaksiService {
     List<TransaksiModel> getAllTransaksiPage(Long page);
     List<TransaksiModel> getTransaksiByPage(Long input);
     TransaksiModel getLatest();
+	List<TransaksiModel> getTransaksiByDate(String start, String end, long page);
 }

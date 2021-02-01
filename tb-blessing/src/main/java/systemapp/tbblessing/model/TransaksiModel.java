@@ -70,7 +70,6 @@ public class TransaksiModel implements Serializable {
     @Temporal(TemporalType.DATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "tanggal_transaksi")
-    @JsonFormat(pattern="yyyy-MM-dd")
     private Date tanggalTransaksi;
 
     public Date getTanggalTransaksi() {

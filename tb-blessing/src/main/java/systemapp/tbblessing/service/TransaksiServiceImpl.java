@@ -9,14 +9,30 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 @Service
 @Transactional
 public class TransaksiServiceImpl implements TransaksiService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Autowired
     TransaksiDb transaksiDb;
 
@@ -113,5 +129,42 @@ public class TransaksiServiceImpl implements TransaksiService {
         List<TransaksiModel> list = transaksiDb.findTop1ByOrderByIdTransaksiDesc();
 
         return list.get(0);
+    }
+
+    @Override
+    public List<TransaksiModel> getTransaksiByDate(String start, String end, long page) {
+        Date starting = null;
+        Date ending = null;
+        try{
+            if(start != null) {
+                starting = new SimpleDateFormat("yyyy-MM-dd").parse(start);
+            }
+            if(end != null) {
+                ending =new SimpleDateFormat("yyyy-MM-dd").parse(end);
+            }
+        } catch (Exception e) {
+        }
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<TransaksiModel> query = cb.createQuery(TransaksiModel.class);
+        Root<TransaksiModel> tm = query.from(TransaksiModel.class);
+
+        Path<Date> tanggal = tm.get("tanggalTransaksi");
+        List<Predicate> predicates = new ArrayList<>();
+
+        if(starting != null) {
+            predicates.add(cb.greaterThanOrEqualTo( tanggal, starting));
+        }
+        if(ending != null) {
+            predicates.add(cb.lessThanOrEqualTo( tanggal, ending));
+        }
+
+        query.select(tm).where(predicates.toArray(new Predicate[]{})).orderBy(cb.desc(tanggal));
+
+        return entityManager
+                    .createQuery(query)
+                    .setFirstResult((int)(page-1) * 10)
+                    .setMaxResults(10)
+                    .getResultList();
     }
 }

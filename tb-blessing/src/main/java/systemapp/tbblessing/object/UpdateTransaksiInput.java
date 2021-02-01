@@ -6,7 +6,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TransaksiInput {
+public class UpdateTransaksiInput {
+    @JsonProperty("idTransaksi")
+    private Long idTransaksi;
+
+    public Long getIdTransaksi() {
+        return this.idTransaksi;
+    }
+
+    public void setIdTransaksi(Long idTransaksi) {
+        this.idTransaksi = idTransaksi;
+    }
+
     @JsonProperty("namaPembeli")
     private String namaPembeli;
 
@@ -60,27 +71,5 @@ public class TransaksiInput {
 
     public void setListBarangRetur(List<BarangReturInput> listBarangRetur) {
         this.listBarangRetur = listBarangRetur;
-    }
-
-    @JsonProperty("tanggalTransaksi")
-    private String tanggal;
-
-    public String getTanggal() {
-        return this.tanggal;
-    }
-
-    public void setTanggal(String tanggal) {
-        this.tanggal = tanggal;
-    }
-
-    @JsonProperty("DP")
-    private Long DP;
-
-    public Long getDP() {
-        return this.DP;
-    }
-
-    public void setDP(Long DP) {
-        this.DP = DP;
     }
 }
