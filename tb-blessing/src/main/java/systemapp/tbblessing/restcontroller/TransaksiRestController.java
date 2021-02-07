@@ -160,93 +160,83 @@ public class TransaksiRestController {
 
     @PutMapping(value = "/transaksi/update/{idTransaksi}")
     private BaseResponse updateTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi, @RequestBody UpdateTransaksiInput transaksi) {
-        try {
-            TransaksiModel oldTransaksi = transaksiService.getTransaksiByIdTransaksi(transaksi.getIdTransaksi());
-            for(BarangJualModel barangJ : oldTransaksi.getListBarangJual()) {
-                BarangModel barang = barangJ.getBarangModel();
+        TransaksiModel newTransaksi = updateTransaksiConverter(transaksi);
+        List<Long> listJual = new ArrayList<>();
+        List<Long> listRetur = new ArrayList<>();
 
-                barang.setStockBarang(barang.getStockBarang() + barangJ.getStockBarangJual());
-                barangService.updateBarang(barang.getIdBarang(), barang);
-                barangJService.deleteBarang(barangJ.getIdBarangJual());
-            }
-
-            for(BarangReturModel barangR : oldTransaksi.getListBarangRetur()) {
-                BarangModel barang = barangR.getBarangModel();
-
-                barang.setStockBarang(barang.getStockBarang() - barangR.getStockBarangRetur());
-                barangService.updateBarang(barang.getIdBarang(), barang);
-                barangRService.deleteBarang(barangR.getIdBarangRetur());
-            }
-
-            TransaksiModel trans = new TransaksiModel();
-            trans.setAlamat(transaksi.getAlamat());
-            trans.setDiskon(transaksi.getDiskon());
-            trans.setIdTransaksi(transaksi.getIdTransaksi());
-            trans.setNamaPembeli(transaksi.getNamaPembeli());
-            trans.setHutangTransaksi(0L);
-            trans.setNominalTransaksi(0L);
-            trans.setListBarangJual(new ArrayList<BarangJualModel>());
-            trans.setListBarangRetur(new ArrayList<BarangReturModel>());
-            trans.setListPembayaran(new ArrayList<PembayaranModel>());
-            trans.setTanggalTransaksi(transaksiService.getTransaksiByIdTransaksi(idTransaksi).getTanggalTransaksi());
-            BarangModel barang = new BarangModel();
-            BarangJualModel barangJ = new BarangJualModel();
-            BarangReturModel barangR =  new BarangReturModel();
-            
-            for(BarangJualInput barangJual : transaksi.getListBarangJual()) {
-
-                try {
-                    barang = barangService.getBarangByNamaBarang(barangJual.getNamaBarang());
-                } catch(NoSuchElementException e) {
-                    continue;
-                }
-    
-                    barangJ.setHargaJual(barangJual.getHarga());
-                    barangJ.setStockBarangJual(barangJual.getStock());
-                    barangJ.setBarangModel(barangService.getBarangByNamaBarang(barangJual.getNamaBarang()));
-                    barangJ.setTransaksiModel(trans);
-                    barangJService.addBarang(barangJ);
-                    trans.addListBarangJual(barangJ);
-    
-                    barang.setStockBarang(barang.getStockBarang() - barangJ.getStockBarangJual());
-                    barangService.updateBarang(barang.getIdBarang(), barang);
-    
-            }
-    
-            for(BarangReturInput barangRetur : transaksi.getListBarangRetur()) {
-    
-                try {
-                    barang = barangService.getBarangByNamaBarang(barangRetur.getNamaBarang());
-                } catch(NoSuchElementException e) {
-                    continue;
-                }
-    
-                barangR.setHargaRetur(barangRetur.getHarga());
-                barangR.setStockBarangRetur(barangRetur.getStock());
-                barangR.setBarangModel(barangService.getBarangByNamaBarang(barangRetur.getNamaBarang()));
-                barangR.setTransaksiModel(trans);
-                barangRService.addBarang(barangR);
-                trans.addListBarangRetur(barangR);
-    
-                barang.setStockBarang(barang.getStockBarang() + barangR.getStockBarangRetur());
-                barangService.updateBarang(barang.getIdBarang(), barang);
-            }
-
-            transaksiService.updateTransaksi(idTransaksi, trans);
-            transaksiService.updateHutangTransaksi(trans);
-            transaksiService.updateNominalTransaksi(trans);
-            TransaksiModel updatedTransaksi = transaksiService.getTransaksiByIdTransaksi(idTransaksi);
-            transaksiService.updateTransaksi(idTransaksi, updatedTransaksi);
-            
-            BaseResponse response = new BaseResponse();
-            response.setStatus(200);
-            response.setMessage("Update Transaksi Sukses");
-            response.setResult(updatedTransaksi);
-
-            return response;
-        } catch (NoSuchElementException e) {
-            return new BaseResponse(404, "Id Transaksi tidak tersedia", null);
+        for(BarangJualModel barangJual : transaksiService.getTransaksiByIdTransaksi(idTransaksi).getListBarangJual()) {
+            listJual.add(barangJual.getIdBarangJual());
         }
+
+        for(BarangReturModel barangRetur : transaksiService.getTransaksiByIdTransaksi(idTransaksi).getListBarangRetur()) {
+            listRetur.add(barangRetur.getIdBarangRetur());
+        }
+
+        transaksiService.updateTransaksi(idTransaksi, newTransaksi);
+
+        BarangModel barang = new BarangModel();
+        BarangJualModel barangJ = new BarangJualModel();
+        BarangReturModel barangR = new BarangReturModel();
+
+        for(BarangJualInput barangJual : transaksi.getListBarangJual()) {
+            try {
+                barang = barangService.getBarangByNamaBarang(barangJual.getNamaBarang());
+            } catch(NoSuchElementException e) {
+                continue;
+            }
+
+                barangJ.setHargaJual(barangJual.getHarga());
+                barangJ.setStockBarangJual(barangJual.getStock());
+                barangJ.setBarangModel(barangService.getBarangByNamaBarang(barangJual.getNamaBarang()));
+                barangJ.setTransaksiModel(newTransaksi);
+                barangJService.addBarang(barangJ);
+                newTransaksi.addListBarangJual(barangJ);
+
+                barang.setStockBarang(barang.getStockBarang() - barangJ.getStockBarangJual());
+                barangService.updateBarang(barang.getIdBarang(), barang);
+
+        }
+
+        for(BarangReturInput barangRetur : transaksi.getListBarangRetur()) {
+
+            try {
+                barang = barangService.getBarangByNamaBarang(barangRetur.getNamaBarang());
+            } catch(NoSuchElementException e) {
+                continue;
+            }
+
+            barangR.setHargaRetur(barangRetur.getHarga());
+            barangR.setStockBarangRetur(barangRetur.getStock());
+            barangR.setBarangModel(barangService.getBarangByNamaBarang(barangRetur.getNamaBarang()));
+            barangR.setTransaksiModel(newTransaksi);
+            barangRService.addBarang(barangR);
+            newTransaksi.addListBarangRetur(barangR);
+
+            barang.setStockBarang(barang.getStockBarang() + barangR.getStockBarangRetur());
+            barangService.updateBarang(barang.getIdBarang(), barang);
+        }
+
+        transaksiService.updateTransaksi(idTransaksi, newTransaksi);
+        for(Long l : listJual) {
+            barangJService.deleteBarang(l);
+        }
+
+        for(long l : listRetur) {
+            barangRService.deleteBarang(l);
+        }
+
+        transaksiService.updateTransaksi(idTransaksi, newTransaksi);
+        newTransaksi = transaksiService.getTransaksiByIdTransaksi(idTransaksi);
+
+        transaksiService.updateNominalTransaksi(newTransaksi);
+        transaksiService.updateHutangTransaksi(newTransaksi);
+
+        BaseResponse result = new BaseResponse();
+        result.setStatus(200);
+        result.setMessage("Update Transaksi Berhasil");
+        result.setResult(newTransaksi);
+
+        return result;
     }
 
     @GetMapping(value = "/transaksi/view/{idTransaksi}")
@@ -314,6 +304,21 @@ public class TransaksiRestController {
 
     private TransaksiModel transaksiConverter(TransaksiInput input) {
         TransaksiModel transaksi = new TransaksiModel();
+        transaksi.setAlamat(input.getAlamat());
+        transaksi.setDiskon(input.getDiskon());
+        transaksi.setNamaPembeli(input.getNamaPembeli());
+        transaksi.setTanggalTransaksi(new Date());
+        transaksi.setHutangTransaksi(0L);
+        transaksi.setNominalTransaksi(0L);
+        transaksi.setListBarangJual(new ArrayList<BarangJualModel>());
+        transaksi.setListBarangRetur(new ArrayList<BarangReturModel>());
+        transaksi.setListPembayaran(new ArrayList<PembayaranModel>());
+        return transaksi;
+    }
+
+    private TransaksiModel updateTransaksiConverter(UpdateTransaksiInput input) {
+        TransaksiModel transaksi = new TransaksiModel();
+        transaksi.setIdTransaksi(input.getIdTransaksi());
         transaksi.setAlamat(input.getAlamat());
         transaksi.setDiskon(input.getDiskon());
         transaksi.setNamaPembeli(input.getNamaPembeli());
