@@ -161,7 +161,7 @@ public class TransaksiRestController {
     @PutMapping(value = "/transaksi/update/{idTransaksi}")
     private BaseResponse updateTransaksi(@PathVariable(value = "idTransaksi") Long idTransaksi, @RequestBody UpdateTransaksiInput transaksi) {
         try {
-            TransaksiModel oldTransaksi = transaksiService.getTransaksiByIdTransaksi(idTransaksi);
+            TransaksiModel oldTransaksi = transaksiService.getTransaksiByIdTransaksi(transaksi.getIdTransaksi());
             for(BarangJualModel barangJ : oldTransaksi.getListBarangJual()) {
                 BarangModel barang = barangJ.getBarangModel();
 
@@ -236,6 +236,7 @@ public class TransaksiRestController {
             transaksiService.updateHutangTransaksi(trans);
             transaksiService.updateNominalTransaksi(trans);
             TransaksiModel updatedTransaksi = transaksiService.getTransaksiByIdTransaksi(idTransaksi);
+            transaksiService.updateTransaksi(idTransaksi, updatedTransaksi);
             
             BaseResponse response = new BaseResponse();
             response.setStatus(200);
