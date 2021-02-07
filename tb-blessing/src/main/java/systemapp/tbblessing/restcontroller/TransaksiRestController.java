@@ -4,6 +4,7 @@ import systemapp.tbblessing.model.*;
 import systemapp.tbblessing.object.BarangJualInput;
 import systemapp.tbblessing.object.BarangReturInput;
 import systemapp.tbblessing.object.BaseResponse;
+import systemapp.tbblessing.object.PageResponse;
 import systemapp.tbblessing.object.TransaksiInput;
 import systemapp.tbblessing.object.UpdateTransaksiInput;
 import systemapp.tbblessing.service.*;
@@ -52,7 +53,7 @@ public class TransaksiRestController {
             } catch(NoSuchElementException e) {
                 continue;
             }
-
+                barangJ = new BarangJualModel();
                 barangJ.setHargaJual(barangJual.getHarga());
                 barangJ.setStockBarangJual(barangJual.getStock());
                 barangJ.setBarangModel(barangService.getBarangByNamaBarang(barangJual.getNamaBarang()));
@@ -73,6 +74,7 @@ public class TransaksiRestController {
                 continue;
             }
 
+            barangR = new BarangReturModel();
             barangR.setHargaRetur(barangRetur.getHarga());
             barangR.setStockBarangRetur(barangRetur.getStock());
             barangR.setBarangModel(barangService.getBarangByNamaBarang(barangRetur.getNamaBarang()));
@@ -106,7 +108,7 @@ public class TransaksiRestController {
     }
 
     @GetMapping(value = "/list-transaksi")
-    private BaseResponse viewListTransaksi(
+    private PageResponse viewListTransaksi(
         @RequestParam(name="page") Long page,
         @RequestParam(name="start", required = false) String start,
         @RequestParam(name="end", required = false) String end) {
@@ -117,24 +119,33 @@ public class TransaksiRestController {
                     id = id - paging;
                 }
 
-                if(id <= 0 && page > 1) {
+                if(transaksiService.getLatest().getIdTransaksi() < 10) {
                     List<TransaksiModel> list = transaksiService.getAllTransaksi();
 
-                    BaseResponse response = new BaseResponse();
+                    PageResponse response = new PageResponse();
                     response.setStatus(200);
-                    response.setMessage("Last Transaksi");
+                    response.setMessage(false);
+                    response.setResult(list);
+
+                    return response;
+                } else if(id <= 0 && page > 1) {
+                    List<TransaksiModel> list = transaksiService.getAllTransaksi();
+
+                    PageResponse response = new PageResponse();
+                    response.setStatus(200);
+                    response.setMessage(false);
                     response.setResult(list);
 
                     return response;
                 } else {
                     List<TransaksiModel> list = transaksiService.getTransaksiByPage(id);
 
-                    BaseResponse response = new BaseResponse();
+                    PageResponse response = new PageResponse();
                     response.setStatus(200);
                     if(list.get(0).getIdTransaksi().equals(1L)) {
-                        response.setMessage("Last Page");
+                        response.setMessage(false);
                     } else {
-                        response.setMessage("Next Page");
+                        response.setMessage(true);
                     }
                     Collections.reverse(list);
                     response.setResult(list);
@@ -144,12 +155,12 @@ public class TransaksiRestController {
             } else {
                 List<TransaksiModel> list = transaksiService.getTransaksiByDate(start, end, page);
 
-                BaseResponse response = new BaseResponse();
+                PageResponse response = new PageResponse();
                 response.setStatus(200);
                 if(list.get(0).getIdTransaksi().equals(1L)) {
-                    response.setMessage("Last Page");
+                    response.setMessage(false);
                 } else {
-                    response.setMessage("Next Page");
+                    response.setMessage(true);
                 }
                 Collections.reverse(list);
                 response.setResult(list);
@@ -163,13 +174,23 @@ public class TransaksiRestController {
         TransaksiModel newTransaksi = updateTransaksiConverter(transaksi);
         List<Long> listJual = new ArrayList<>();
         List<Long> listRetur = new ArrayList<>();
+        BarangModel barangModel = new BarangModel();
 
         for(BarangJualModel barangJual : transaksiService.getTransaksiByIdTransaksi(idTransaksi).getListBarangJual()) {
             listJual.add(barangJual.getIdBarangJual());
+            barangModel = barangJual.getBarangModel();
+
+            barangModel.setStockBarang(barangModel.getStockBarang() + barangJual.getStockBarangJual());
+            barangService.updateBarang(barangModel.getIdBarang(), barangModel);
         }
 
         for(BarangReturModel barangRetur : transaksiService.getTransaksiByIdTransaksi(idTransaksi).getListBarangRetur()) {
             listRetur.add(barangRetur.getIdBarangRetur());
+
+            barangModel = barangRetur.getBarangModel();
+
+            barangModel.setStockBarang(barangModel.getStockBarang() - barangRetur.getStockBarangRetur());
+            barangService.updateBarang(barangModel.getIdBarang(), barangModel);
         }
 
         transaksiService.updateTransaksi(idTransaksi, newTransaksi);
@@ -184,12 +205,13 @@ public class TransaksiRestController {
             } catch(NoSuchElementException e) {
                 continue;
             }
-
+            barangJ = new BarangJualModel();
                 barangJ.setHargaJual(barangJual.getHarga());
                 barangJ.setStockBarangJual(barangJual.getStock());
                 barangJ.setBarangModel(barangService.getBarangByNamaBarang(barangJual.getNamaBarang()));
                 barangJ.setTransaksiModel(newTransaksi);
                 barangJService.addBarang(barangJ);
+                System.out.println(barangJ.getIdBarangJual());
                 newTransaksi.addListBarangJual(barangJ);
 
                 barang.setStockBarang(barang.getStockBarang() - barangJ.getStockBarangJual());
@@ -204,7 +226,7 @@ public class TransaksiRestController {
             } catch(NoSuchElementException e) {
                 continue;
             }
-
+            barangR = new BarangReturModel();
             barangR.setHargaRetur(barangRetur.getHarga());
             barangR.setStockBarangRetur(barangRetur.getStock());
             barangR.setBarangModel(barangService.getBarangByNamaBarang(barangRetur.getNamaBarang()));
